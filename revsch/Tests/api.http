@@ -1,0 +1,32 @@
+### Requisição inicial
+GET http://localhost:5191/
+
+### Requisiçao Listagem Lojas
+GET http://localhost:5191/lojas
+
+### Requisição buscar loja
+GET http://localhost:5191/loja/1
+
+
+### Requisição criar lojas
+POST http://localhost:5191/loja
+Content-Type: application/json
+
+{
+    "nome": "Opa",
+    "url": "paoskposk"
+     
+}
+
+### Requisição editar lojas
+PUT http://localhost:5191/loja/1
+Content-Type: application/json
+
+{
+    "nome": "EITA",
+    "url": "paoAAAAAAAAAAAAskposk"
+     
+}
+
+### Requisiação deletar loja
+DELETE http://localhost:5191/loja/2
