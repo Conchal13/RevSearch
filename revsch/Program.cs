@@ -1029,4 +1029,277 @@ app.MapDelete("/produto/{id}", async ([FromServices] AppDbContext context, [From
     }
 });
 
+//Endpoints de Avaliacao
+app.MapGet("/avaliacoes", async ([FromServices] AppDbContext context) =>
+{
+    try
+    {
+        var avaliacoes = await context.Avaliacoes.ToListAsync();
+        if (avaliacoes.Count == 0)
+        {
+            return Results.Ok(new Response<List<Avaliacao>>
+            {
+                Mensagem = "Nenhuma avaliação cadastrada",
+                Sucesso = true
+            });
+        }
+
+        return Results.Ok(new Response<List<Avaliacao>>
+        {
+            Dados = avaliacoes,
+            Mensagem = "Avaliações listadas com sucesso",
+            Sucesso = true
+        });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new Response<List<Avaliacao>>
+        {
+            Mensagem = "Houve um erro ao listar as avaliações",
+            Sucesso = false
+        }, statusCode: 500);
+    }
+});
+app.MapGet("/avaliacoes/produto/{idProduto}", async ([FromServices] AppDbContext context, [FromRoute] int idProduto) =>
+{
+    try
+    {
+        var avaliacoes = await context.Avaliacoes
+            .Where(a => a.ProdutoId == idProduto)
+            .ToListAsync();
+
+        if (avaliacoes.Count == 0)
+        {
+            return Results.Ok(new Response<List<Avaliacao>>
+            {
+                Mensagem = "Nenhuma avaliação encontrada para o produto",
+                Sucesso = true
+            });
+        }
+
+        return Results.Ok(new Response<List<Avaliacao>>
+        {
+            Dados = avaliacoes,
+            Mensagem = "Avaliações do produto listadas com sucesso",
+            Sucesso = true
+        });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new Response<List<Avaliacao>>
+        {
+            Mensagem = "Houve um erro ao listar as avaliações do produto",
+            Sucesso = false
+        }, statusCode: 500);
+    }
+});
+app.MapGet("/avaliacao/{id}", async ([FromServices] AppDbContext context, [FromRoute] int id) =>
+{
+    try
+    {
+        var avaliacao = await context.Avaliacoes.FindAsync(id);
+        if (avaliacao == null)
+        {
+            return Results.NotFound(new Response<Avaliacao>
+            {
+                Mensagem = "Avaliação não encontrada",
+                Sucesso = false
+            });
+        }
+
+        return Results.Ok(new Response<Avaliacao>
+        {
+            Mensagem = "Avaliação encontrada com sucesso",
+            Sucesso = true,
+            Dados = avaliacao
+        });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new Response<Avaliacao>
+        {
+            Mensagem = "Houve um erro ao buscar a avaliação",
+            Sucesso = false
+        }, statusCode: 500);
+    }
+});
+app.MapPost("/avaliacao", async ([FromServices] AppDbContext context, [FromBody] Avaliacao request) =>
+{
+    try
+    {
+        if (string.IsNullOrEmpty(request.NomeUsuario))
+        {
+            return Results.BadRequest(new Response<Avaliacao>
+            {
+                Mensagem = "Nome do usuário é obrigatório",
+                Sucesso = false
+            });
+        }
+
+        if (string.IsNullOrEmpty(request.Comentario))
+        {
+            return Results.BadRequest(new Response<Avaliacao>
+            {
+                Mensagem = "Comentário é obrigatório",
+                Sucesso = false
+            });
+        }
+
+        var produto = await context.Produtos.FindAsync(request.ProdutoId);
+        if (produto == null)
+        {
+            return Results.BadRequest(new Response<Avaliacao>
+            {
+                Mensagem = "Produto não encontrado para o id: " + request.ProdutoId,
+                Sucesso = false
+            });
+        }
+
+        if(request.Nota < 0 || request.Nota > 5)
+        {
+            return Results.BadRequest(new Response<Avaliacao>
+            {
+                Mensagem = "A nota do produto deve estar entre 0 e 5 ",
+                Sucesso = false
+            });
+        }
+
+        var avaliacao = new Avaliacao
+        {
+            NomeUsuario = request.NomeUsuario,
+            Nota = request.Nota,
+            UrlImagem = request.UrlImagem,
+            Comentario = request.Comentario,
+            DataAvaliacao = request.DataAvaliacao,
+            ProdutoId = request.ProdutoId
+        };
+
+        var novaAvaliacao = await context.Avaliacoes.AddAsync(avaliacao);
+        await context.SaveChangesAsync();
+
+        return Results.Created("", new Response<Avaliacao>
+        {
+            Mensagem = "Avaliação criada com sucesso",
+            Sucesso = true,
+            Dados = novaAvaliacao.Entity
+        });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new Response<Avaliacao>
+        {
+            Mensagem = "Houve um erro ao cadastrar a avaliação",
+            Sucesso = false
+        }, statusCode: 500);
+    }
+});
+app.MapPut("/avaliacao/{id}", async ([FromServices] AppDbContext context, [FromRoute] int id, [FromBody] Avaliacao request) =>
+{
+    try
+    {
+        var avaliacao = await context.Avaliacoes.FindAsync(id);
+        if (avaliacao == null)
+        {
+            return Results.NotFound(new Response<Avaliacao>
+            {
+                Mensagem = "Avaliação não encontrada",
+                Sucesso = false
+            });
+        }
+
+        if (string.IsNullOrEmpty(request.NomeUsuario))
+        {
+            return Results.BadRequest(new Response<Avaliacao>
+            {
+                Mensagem = "Nome do usuário é obrigatório",
+                Sucesso = false
+            });
+        }
+
+        if (string.IsNullOrEmpty(request.Comentario))
+        {
+            return Results.BadRequest(new Response<Avaliacao>
+            {
+                Mensagem = "Comentário é obrigatório",
+                Sucesso = false
+            });
+        }
+
+        var produto = await context.Produtos.FindAsync(request.ProdutoId);
+        if (produto == null)
+        {
+            return Results.BadRequest(new Response<Avaliacao>
+            {
+                Mensagem = "Produto não encontrado para o id: " + request.ProdutoId,
+                Sucesso = false
+            });
+        }
+
+        if(request.Nota < 0 || request.Nota > 5)
+        {
+            return Results.BadRequest(new Response<Avaliacao>
+            {
+                Mensagem = "A nota do produto deve estar entre 0 e 5 ",
+                Sucesso = false
+            });
+        }
+
+        avaliacao.NomeUsuario = request.NomeUsuario;
+        avaliacao.Nota = request.Nota;
+        avaliacao.UrlImagem = request.UrlImagem;
+        avaliacao.Comentario = request.Comentario;
+        avaliacao.DataAvaliacao = request.DataAvaliacao;
+        avaliacao.ProdutoId = request.ProdutoId;
+        await context.SaveChangesAsync();
+
+        return Results.Ok(new Response<Avaliacao>
+        {
+            Mensagem = "Avaliação atualizada com sucesso",
+            Sucesso = true,
+            Dados = avaliacao
+        });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new Response<Avaliacao>
+        {
+            Mensagem = "Houve um erro ao atualizar a avaliação",
+            Sucesso = false
+        }, statusCode: 500);
+    }
+});
+app.MapDelete("/avaliacao/{id}", async ([FromServices] AppDbContext context, [FromRoute] int id) =>
+{
+    try
+    {
+        var avaliacao = await context.Avaliacoes.FindAsync(id);
+        if (avaliacao == null)
+        {
+            return Results.NotFound(new Response<Avaliacao>
+            {
+                Mensagem = "Avaliação não encontrada",
+                Sucesso = false
+            });
+        }
+
+        context.Avaliacoes.Remove(avaliacao);
+        await context.SaveChangesAsync();
+
+        return Results.Ok(new Response<Avaliacao>
+        {
+            Mensagem = "Avaliação removida com sucesso",
+            Sucesso = true,
+            Dados = avaliacao
+        });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new Response<Avaliacao>
+        {
+            Mensagem = "Houve um erro ao remover a avaliação",
+            Sucesso = false
+        }, statusCode: 500);
+    }
+});
+
 app.Run();
