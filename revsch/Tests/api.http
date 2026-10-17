@@ -4,8 +4,14 @@ GET http://localhost:5191/
 ### Requisiçao Listagem Lojas
 GET http://localhost:5191/lojas
 
+### Requisição listagem categorias
+GET http://localhost:5191/categorias
+
 ### Requisição buscar loja
 GET http://localhost:5191/loja/1
+
+### Requisição buscar categoria
+GET http://localhost:5191/categoria/1
 
 
 ### Requisição criar lojas
@@ -18,6 +24,14 @@ Content-Type: application/json
      
 }
 
+### Requisição criar categoria
+POST http://localhost:5191/categoria
+Content-Type: application/json
+
+{
+    "nome": "Eletrônicos"
+}
+
 ### Requisição editar lojas
 PUT http://localhost:5191/loja/1
 Content-Type: application/json
@@ -28,5 +42,16 @@ Content-Type: application/json
      
 }
 
+### Requisição editar categoria
+PUT http://localhost:5191/categoria/1
+Content-Type: application/json
+
+{
+    "nome": "Eletrodomésticos"
+}
+
 ### Requisiação deletar loja
 DELETE http://localhost:5191/loja/2
+
+### Requisição deletar categoria
+DELETE http://localhost:5191/categoria/1
