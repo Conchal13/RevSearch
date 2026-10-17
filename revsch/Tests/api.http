@@ -4,32 +4,17 @@ GET http://localhost:5191/
 ### Requisiçao Listagem Lojas
 GET http://localhost:5191/lojas
 
-### Requisição listagem categorias
-GET http://localhost:5191/categorias
-
 ### Requisição buscar loja
 GET http://localhost:5191/loja/1
-
-### Requisição buscar categoria
-GET http://localhost:5191/categoria/1
-
 
 ### Requisição criar lojas
 POST http://localhost:5191/loja
 Content-Type: application/json
 
 {
-    "nome": "Opa",
-    "url": "paoskposk"
-     
-}
+    "nome": "Kabum Eletronicos",
+    "url": "https://www.kabum.com.br"
 
-### Requisição criar categoria
-POST http://localhost:5191/categoria
-Content-Type: application/json
-
-{
-    "nome": "Eletrônicos"
 }
 
 ### Requisição editar lojas
@@ -37,9 +22,25 @@ PUT http://localhost:5191/loja/1
 Content-Type: application/json
 
 {
-    "nome": "EITA",
-    "url": "paoAAAAAAAAAAAAskposk"
-     
+    "nome": "Kabum",
+    "url": "https://www.kabum.com.br"
+}
+
+### Requisiação deletar loja
+DELETE http://localhost:5191/loja/1
+
+### Requisição listagem categorias
+GET http://localhost:5191/categorias
+
+### Requisição buscar categoria
+GET http://localhost:5191/categoria/1
+
+### Requisição criar categoria
+POST http://localhost:5191/categoria
+Content-Type: application/json
+
+{
+    "nome": "Eletrônicos"
 }
 
 ### Requisição editar categoria
@@ -50,8 +51,69 @@ Content-Type: application/json
     "nome": "Eletrodomésticos"
 }
 
-### Requisiação deletar loja
-DELETE http://localhost:5191/loja/2
-
 ### Requisição deletar categoria
 DELETE http://localhost:5191/categoria/1
+
+### Requisição listagem segmentos
+GET http://localhost:5191/segmentos
+
+### Requisição buscar segmento
+GET http://localhost:5191/segmento/1
+
+### Requisição criar segmento
+POST http://localhost:5191/segmento
+Content-Type: application/json
+
+{
+    "nome": "Celulares",
+    "categoriaId": 1
+}
+
+### Requisição editar segmento
+PUT http://localhost:5191/segmento/1
+Content-Type: application/json
+
+{
+    "nome": "Smartphones",
+    "categoriaId": 1
+}
+
+### Requisição deletar segmento
+DELETE http://localhost:5191/segmento/1
+
+### Requisição listar produtos
+GET http://localhost:5191/produtos
+
+### Requisição listar produtos por loja
+GET http://localhost:5191/produtos/loja/1
+
+### Requisição listar produtos por segmento
+GET http://localhost:5191/produtos/segmento/1
+
+### Requisição buscar produto
+GET http://localhost:5191/produto/1
+
+### Requisição criar produto
+POST http://localhost:5191/produto
+Content-Type: application/json
+
+{
+    "nome": "Smartphone de demonstração",
+    "urlProduto": "https://www.kabum.com.br/produto/smartphone",
+    "lojaId": 1,
+    "segmentoId": 1
+}
+
+### Requisição editar produto
+PUT http://localhost:5191/produto/1
+Content-Type: application/json
+
+{
+    "nome": "Smartphone atualizado",
+    "urlProduto": "https://www.kabum.com.br/produto/smartphone-atualizado",
+    "lojaId": 1,
+    "segmentoId": 1
+}
+
+### Requisição deletar produto
+DELETE http://localhost:5191/produto/1

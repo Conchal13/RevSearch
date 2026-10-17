@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>();
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 var app = builder.Build();
 
@@ -248,7 +251,7 @@ app.MapGet("/categorias", async ([FromServices] AppDbContext context) =>
 {
     try
     {
-        var categorias = await context.Categorias.ToListAsync();
+        var categorias = await context.Categorias.Include(c => c.Segmentos).ToListAsync();
         if (categorias.Count == 0)
         {
             return Results.Ok(
@@ -285,7 +288,7 @@ app.MapGet("/categoria/{id}", async ([FromServices] AppDbContext context, [FromR
 {
     try
     {
-        var categoria = await context.Categorias.FindAsync(id);
+        var categoria = await context.Categorias.Include(c => c.Segmentos).FirstOrDefaultAsync(c => c.Id == id);
         if (categoria == null)
         {
             return Results.NotFound(
@@ -450,6 +453,580 @@ app.MapDelete("/categoria/{id}", async ([FromServices] AppDbContext context, [Fr
     }
 });
 
+//Endpoints de Segmento
+app.MapGet("/segmentos", async ([FromServices] AppDbContext context) =>
+{
+    try
+    {
+        var segmentos = await context.Segmentos.Include(s => s.Categoria).ToListAsync();
+        if (segmentos.Count == 0)
+        {
+            return Results.Ok(
+                new Response<List<Segmento>>
+                {
+                    Mensagem = "Nenhum segmento cadastrado",
+                    Sucesso = true
+                }
+            );
+        }
 
+        return Results.Ok(
+            new Response<List<Segmento>>
+            {
+                Mensagem = "Segmentos listados com sucesso",
+                Sucesso = true,
+                Dados = segmentos
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<List<Segmento>>
+            {
+                Mensagem = "Houve um erro ao listar os segmentos",
+                Sucesso = false
+            },
+            statusCode: 500
+        );
+    }
+});
+app.MapGet("/segmento/{id}", async ([FromServices] AppDbContext context, [FromRoute] int id) =>
+{
+    try
+    {
+        var segmento = await context.Segmentos.Include(s => s.Categoria).FirstOrDefaultAsync(s => s.Id == id);
+        if (segmento == null)
+        {
+            return Results.NotFound(
+                new Response<Segmento>
+                {
+                    Mensagem = "Segmento não encontrado",
+                    Sucesso = false
+                }
+            );
+        }
+
+        return Results.Ok(
+            new Response<Segmento>
+            {
+                Mensagem = "Segmento encontrado com sucesso",
+                Sucesso = true,
+                Dados = segmento
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<Segmento>
+            {
+                Mensagem = "Houve um erro ao buscar o segmento",
+                Sucesso = false
+            },
+            statusCode: 500
+        );
+    }
+});
+app.MapPost("/segmento", async ([FromServices] AppDbContext context, [FromBody] Segmento request) =>
+{
+    try
+    {
+        if (string.IsNullOrEmpty(request.Nome))
+        {
+            return Results.BadRequest(
+                new Response<Segmento>
+                {
+                    Mensagem = "Nome do segmento é obrigatório",
+                    Sucesso = false
+                }
+            );
+        }
+
+        var categoria = await context.Categorias.FindAsync(request.CategoriaId);
+        if (categoria == null)
+        {
+            return Results.BadRequest(
+                new Response<Segmento>
+                {
+                    Mensagem = "Categoria não encontrada para o id: " + request.CategoriaId,
+                    Sucesso = false
+                }
+            );
+        }
+
+        var segmento = new Segmento
+        {
+            Nome = request.Nome,
+            CategoriaId = request.CategoriaId
+        };
+        var novoSegmento = await context.Segmentos.AddAsync(segmento);
+        await context.SaveChangesAsync();
+
+        return Results.Created(
+            "",
+            new Response<Segmento>
+            {
+                Mensagem = "Segmento criado com sucesso",
+                Sucesso = true,
+                Dados = novoSegmento.Entity
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<Segmento>
+            {
+                Mensagem = "Houve um erro ao cadastrar o segmento",
+                Sucesso = false
+            },
+            statusCode: 500
+        );
+    }
+});
+app.MapPut("/segmento/{id}", async ([FromServices] AppDbContext context, [FromRoute] int id, [FromBody] Segmento request) =>
+{
+    try
+    {
+        var segmento = await context.Segmentos.FindAsync(id);
+        if (segmento == null)
+        {
+            return Results.NotFound(
+                new Response<Segmento>
+                {
+                    Mensagem = "Segmento não encontrado",
+                    Sucesso = false
+                }
+            );
+        }
+
+        if (string.IsNullOrEmpty(request.Nome))
+        {
+            return Results.BadRequest(
+                new Response<Segmento>
+                {
+                    Mensagem = "Nome do segmento é obrigatório",
+                    Sucesso = false
+                }
+            );
+        }
+
+        var categoria = await context.Categorias.FindAsync(request.CategoriaId);
+        if (categoria == null)
+        {
+            return Results.BadRequest(
+                new Response<Segmento>
+                {
+                    Mensagem = "Categoria não encontrada para o id: " + request.CategoriaId,
+                    Sucesso = false
+                }
+            );
+        }
+
+        segmento.Nome = request.Nome;
+        segmento.CategoriaId = request.CategoriaId;
+        await context.SaveChangesAsync();
+
+        return Results.Ok(
+            new Response<Segmento>
+            {
+                Mensagem = "Segmento atualizado com sucesso",
+                Sucesso = true,
+                Dados = segmento
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<Segmento>
+            {
+                Mensagem = "Houve um erro ao atualizar o segmento",
+                Sucesso = false
+            },
+            statusCode: 500
+        );
+    }
+});
+app.MapDelete("/segmento/{id}", async ([FromServices] AppDbContext context, [FromRoute] int id) =>
+{
+    try
+    {
+        var segmento = await context.Segmentos.FindAsync(id);
+        if (segmento == null)
+        {
+            return Results.NotFound(
+                new Response<Segmento>
+                {
+                    Mensagem = "Segmento não encontrado",
+                    Sucesso = false
+                }
+            );
+        }
+
+        context.Segmentos.Remove(segmento);
+        await context.SaveChangesAsync();
+
+        return Results.Ok(
+            new Response<Segmento>
+            {
+                Mensagem = "Segmento removido com sucesso",
+                Sucesso = true,
+                Dados = segmento
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<Segmento>
+            {
+                Mensagem = "Houve um erro ao remover o segmento",
+                Sucesso = false
+            },
+            statusCode: 500
+        );
+    }
+});
+
+//Endpoints de Produto
+app.MapGet("/produtos", async ([FromServices] AppDbContext context) =>
+{
+    try
+    {
+        var produtos = await context.Produtos.Include(p => p.Segmento).Include(p => p.Loja).ToListAsync();
+        if (produtos.Count == 0)
+        {
+            return Results.Ok(new Response<List<Produto>>
+            {
+                Mensagem = "Nenhum produto cadastrado",
+                Sucesso = true
+            });
+        }
+
+        return Results.Ok(new Response<List<Produto>>
+        {
+            Dados = produtos,
+            Mensagem = "Produtos listados com sucesso",
+            Sucesso = true
+        });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new Response<Produto>
+        {
+            Mensagem = "Houve um erro ao listar os produtos",
+            Sucesso = false
+        }, statusCode: 500);
+    }
+});
+app.MapGet("/produtos/loja/{idLoja}", async ([FromServices] AppDbContext context, [FromRoute] int idLoja) =>
+{
+    try
+    {
+        var produtos = await context.Produtos.Where(p => p.LojaId == idLoja).Include(p => p.Segmento).Include(p => p.Loja).ToListAsync();
+        if (produtos.Count == 0)
+        {
+            return Results.Ok(new Response<List<Produto>>
+            {
+                Mensagem = "Nenhum produto encontrado",
+                Sucesso = true
+            });
+        }
+
+        return Results.Ok(new Response<List<Produto>>
+        {
+            Dados = produtos,
+            Mensagem = "Produtos listados com sucesso",
+            Sucesso = true
+        });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new Response<Produto>
+        {
+            Mensagem = "Houve um erro ao listar os produtos",
+            Sucesso = false
+        }, statusCode: 500);
+    }
+});
+app.MapGet("/produtos/segmento/{idSegmento}", async ([FromServices] AppDbContext context, [FromRoute] int idSegmento) => {
+    try
+    {
+        var produtos = await context.Produtos.Where(p => p.SegmentoId == idSegmento).Include(p => p.Segmento).Include(p => p.Loja).ToListAsync();
+        if (produtos.Count == 0)
+        {
+            return Results.Ok(new Response<List<Produto>>
+            {
+                Mensagem = "Nenhum produto encontrado",
+                Sucesso = true
+            });
+        }
+
+        return Results.Ok(new Response<List<Produto>>
+        {
+            Dados = produtos,
+            Mensagem = "Produtos listados com sucesso",
+            Sucesso = true
+        });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new Response<Produto>
+        {
+            Mensagem = "Houve um erro ao listar os produtos",
+            Sucesso = false
+        }, statusCode: 500);
+    }
+});
+app.MapGet("/produto/{id}", async ([FromServices] AppDbContext context, [FromRoute] int id) =>
+{
+    try
+    {
+        var produto = await context.Produtos.Include(p => p.Segmento).Include(p => p.Loja).FirstOrDefaultAsync(p => p.Id == id);
+        if (produto == null)
+        {
+            return Results.NotFound(
+                new Response<Produto>
+                {
+                    Mensagem = "Produto não encontrado",
+                    Sucesso = false
+                }
+            );
+        }
+
+        return Results.Ok(
+            new Response<Produto>
+            {
+                Mensagem = "Produto encontrado com sucesso",
+                Sucesso = true,
+                Dados = produto
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<Produto>
+            {
+                Mensagem = "Houve um erro ao buscar o Produto",
+                Sucesso = false
+            },
+            statusCode: 500
+        );
+    }
+});
+app.MapPost("/produto", async ([FromServices] AppDbContext context, [FromBody] Produto request) =>
+{
+    try
+    {
+        if (string.IsNullOrEmpty(request.Nome))
+        {
+            return Results.BadRequest(
+               new Response<Produto>
+               {
+                   Mensagem = "Nome do produto é Obrigatório",
+                   Sucesso = false
+               }
+            );
+
+        }
+
+        if (string.IsNullOrEmpty(request.UrlProduto))
+        {
+            return Results.BadRequest(
+               new Response<Produto>
+               {
+                   Mensagem = "URL do produto é Obrigatório",
+                   Sucesso = false
+               }
+            );
+
+        }
+
+        var loja = await context.Lojas.FindAsync(request.LojaId);
+        if (loja == null)
+        {
+            return Results.BadRequest(
+                new Response<Produto>
+                {
+                    Mensagem = "Loja não encontrada para o id: " + request.LojaId,
+                    Sucesso = false
+                }
+                );
+        }
+
+        var segmento = await context.Segmentos.FindAsync(request.SegmentoId);
+        if (segmento == null)
+        {
+            return Results.BadRequest(
+                new Response<Produto>
+                {
+                    Mensagem = "Segmento não encontrada para o id: " + request.SegmentoId,
+                    Sucesso = false
+                }
+                );
+        }
+
+        var produtos = await context.Produtos.AddAsync(request);
+        await context.SaveChangesAsync();
+
+        return Results.Created(
+            "",
+            new Response<Produto>
+            {
+                Mensagem = "Produto criado com sucesso",
+                Sucesso = true,
+                Dados = produtos.Entity
+            }
+           );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<List<Produto>>
+            {
+                Mensagem = "Houve um erro ao cadastrar o produto",
+                Sucesso = false,
+            },
+            statusCode: 500
+        );
+
+    }
+});
+app.MapPut("/produto/{id}", async ([FromServices] AppDbContext context, [FromRoute] int id, [FromBody] Produto request) =>
+{
+    try
+    {
+        var produto = await context.Produtos.FindAsync(id);
+
+        if (produto == null)
+        {
+            return Results.NotFound(
+                new Response<Produto>
+                {
+                    Mensagem = "Produto não encontrado",
+                    Sucesso = false
+                }
+            );
+        }
+
+        if (string.IsNullOrEmpty(request.Nome))
+        {
+            return Results.BadRequest(
+               new Response<Produto>
+               {
+                   Mensagem = "Nome do produto é Obrigatório",
+                   Sucesso = false
+               }
+            );
+
+        }
+
+        if (string.IsNullOrEmpty(request.UrlProduto))
+        {
+            return Results.BadRequest(
+               new Response<Produto>
+               {
+                   Mensagem = "URL do produto é Obrigatório",
+                   Sucesso = false
+               }
+            );
+
+        }
+
+        var loja = await context.Lojas.FindAsync(request.LojaId);
+        if (loja == null)
+        {
+            return Results.BadRequest(
+                new Response<Produto>
+                {
+                    Mensagem = "Loja não encontrada para o id: " + request.LojaId,
+                    Sucesso = false
+                }
+            );
+        }
+
+        var segmento = await context.Segmentos.FindAsync(request.SegmentoId);
+        if (segmento == null)
+        {
+            return Results.BadRequest(
+                new Response<Produto>
+                {
+                    Mensagem = "Segmento não encontrada para o id: " + request.SegmentoId,
+                    Sucesso = false
+                }
+            );
+        }
+
+        produto.Nome = request.Nome;
+        produto.UrlProduto = request.UrlProduto;
+        produto.LojaId = request.LojaId;
+        produto.SegmentoId = request.SegmentoId;
+        await context.SaveChangesAsync();
+
+        return Results.Ok(
+            new Response<Produto>
+            {
+                Mensagem = "Produto editado com sucesso",
+                Sucesso = true,
+                Dados = produto
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<List<Produto>>
+            {
+                Mensagem = "Houve um erro ao editar o produto",
+                Sucesso = false,
+            },
+            statusCode: 500
+        );
+
+    }
+});
+app.MapDelete("/produto/{id}", async ([FromServices] AppDbContext context, [FromRoute] int id) =>
+{
+    try
+    {
+        var produto = await context.Produtos.FindAsync(id);
+        if (produto == null)
+        {
+            return Results.NotFound(
+                new Response<Produto>
+                {
+                    Mensagem = "Produto não encontrado",
+                    Sucesso = false
+                }
+            );
+        }
+
+        context.Produtos.Remove(produto);
+        await context.SaveChangesAsync();
+
+        return Results.Ok(
+            new Response<Produto>
+            {
+                Mensagem = "Produto removido com sucesso",
+                Sucesso = true,
+                Dados = produto
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<Produto>
+            {
+                Mensagem = "Houve um erro ao buscar o Produto",
+                Sucesso = false
+            },
+            statusCode: 500
+        );
+    }
+});
 
 app.Run();
