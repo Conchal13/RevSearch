@@ -93,6 +93,9 @@ GET http://localhost:5191/produtos/segmento/2
 ### Requisição listar produtos por categoria
 GET http://localhost:5191/produtos/categoria/2
 
+### Requisição flitro avançado de produtos
+GET http://localhost:5191/produtos/filtrar?nomeProduto=M&idSegmento=2&idCategoria=2&idLoja=1
+
 ### Requisição buscar produto
 GET http://localhost:5191/produto/1
 

@@ -867,6 +867,55 @@ app.MapGet("/produtos/categoria/{idCategoria}", async ([FromServices] AppDbConte
         );
     }
 });
+
+app.MapGet("/produtos/filtrar", async ([FromServices] AppDbContext context, [FromQuery]int? idCategoria, [FromQuery]int? idLoja, [FromQuery]int? idSegmento, [FromQuery] string? nomeProduto) =>
+{
+     try
+    {
+
+        
+        var produtos = await context.Produtos
+        .Include(p => p.Avaliacoes)
+        .Where(p => 
+            (idCategoria == null || p.Segmento!.CategoriaId == idCategoria) &&
+            (idSegmento == null || p.SegmentoId == idSegmento) &&
+            (idLoja == null || p.LojaId == idLoja) &&
+            (nomeProduto == null || p.Nome.Contains(nomeProduto))
+        )
+        .ToListAsync();
+
+         if (produtos.Count == 0)
+        {
+            return Results.Ok(new Response<List<Produto>>
+            {
+                Mensagem = "Nenhum produto encontrado",
+                Sucesso = true
+            });
+        }
+        
+        return Results.Ok(
+            new Response<List<Produto>>
+            {
+                Mensagem = "Produtos listados com sucesso",
+                Sucesso = true,
+                Dados = produtos
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<List<Produto>>
+            {
+                Mensagem = "Houve um erro ao listar os Produtos",
+                Sucesso = false
+            },
+            statusCode: 500
+        );
+    }
+});
+
+
 app.MapPost("/produto", async ([FromServices] AppDbContext context, [FromBody] Produto request) =>
 {
     try
