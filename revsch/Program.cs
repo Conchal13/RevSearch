@@ -751,7 +751,8 @@ app.MapGet("/produtos/loja/{idLoja}", async ([FromServices] AppDbContext context
         }, statusCode: 500);
     }
 });
-app.MapGet("/produtos/segmento/{idSegmento}", async ([FromServices] AppDbContext context, [FromRoute] int idSegmento) => {
+app.MapGet("/produtos/segmento/{idSegmento}", async ([FromServices] AppDbContext context, [FromRoute] int idSegmento) =>
+{
     try
     {
         var produtos = await context.Produtos.Where(p => p.SegmentoId == idSegmento).Include(p => p.Segmento).Include(p => p.Loja).ToListAsync();
@@ -811,6 +812,55 @@ app.MapGet("/produto/{id}", async ([FromServices] AppDbContext context, [FromRou
             new Response<Produto>
             {
                 Mensagem = "Houve um erro ao buscar o Produto",
+                Sucesso = false
+            },
+            statusCode: 500
+        );
+    }
+
+});
+app.MapGet("/produtos/categoria/{idCategoria}", async ([FromServices] AppDbContext context, [FromRoute] int idCategoria) =>
+{
+     try
+    {
+        var categoria = await context.Categorias.FirstOrDefaultAsync(c => c.Id == idCategoria);
+        if (categoria == null)
+        {
+             return Results.BadRequest(
+                new Response<List<Produto>>
+                {
+                    Mensagem = "Categoria não encontrada para o id: " + idCategoria,
+                    Sucesso = false
+                }
+                );
+        }
+
+        var produtos = await context.Produtos.Include(p => p.Segmento).Where(p => p.Segmento!.CategoriaId == idCategoria).ToListAsync();
+
+         if (produtos.Count == 0)
+        {
+            return Results.Ok(new Response<List<Produto>>
+            {
+                Mensagem = "Nenhum produto encontrado",
+                Sucesso = true
+            });
+        }
+        
+        return Results.Ok(
+            new Response<List<Produto>>
+            {
+                Mensagem = "Produtos listados com sucesso",
+                Sucesso = true,
+                Dados = produtos
+            }
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Json(
+            new Response<List<Produto>>
+            {
+                Mensagem = "Houve um erro ao listar os Produtos",
                 Sucesso = false
             },
             statusCode: 500
@@ -1155,7 +1205,7 @@ app.MapPost("/avaliacao", async ([FromServices] AppDbContext context, [FromBody]
             });
         }
 
-        if(request.Nota < 0 || request.Nota > 5)
+        if (request.Nota < 0 || request.Nota > 5)
         {
             return Results.BadRequest(new Response<Avaliacao>
             {
@@ -1235,7 +1285,7 @@ app.MapPut("/avaliacao/{id}", async ([FromServices] AppDbContext context, [FromR
             });
         }
 
-        if(request.Nota < 0 || request.Nota > 5)
+        if (request.Nota < 0 || request.Nota > 5)
         {
             return Results.BadRequest(new Response<Avaliacao>
             {
@@ -1300,6 +1350,10 @@ app.MapDelete("/avaliacao/{id}", async ([FromServices] AppDbContext context, [Fr
             Sucesso = false
         }, statusCode: 500);
     }
+
+
 });
+
+
 
 app.Run();
