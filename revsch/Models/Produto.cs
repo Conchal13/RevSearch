@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 public class Produto
 {
     public int Id { get; set; }
@@ -12,6 +14,8 @@ public class Produto
 
     public ICollection<Avaliacao> Avaliacoes { get; set; } = new List<Avaliacao>();
     
+    [NotMapped]
+    public float MediaNotas => Avaliacoes.Count == 0 ? 0F : float.Round((float)Avaliacoes.Average(a => a.Nota), 2);
 
 }
 

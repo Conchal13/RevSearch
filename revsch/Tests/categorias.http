@@ -17,7 +17,7 @@ PUT http://localhost:5191/categoria/1
 Content-Type: application/json
 
 {
-    "nome": "Eletrodomésticos"
+    "nome": "Eletronicos"
 }
 
 ### Requisição deletar categoria

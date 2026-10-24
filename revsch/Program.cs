@@ -695,7 +695,7 @@ app.MapGet("/produtos", async ([FromServices] AppDbContext context) =>
 {
     try
     {
-        var produtos = await context.Produtos.Include(p => p.Segmento).Include(p => p.Loja).ToListAsync();
+        var produtos = await context.Produtos.Include(p => p.Segmento).Include(p => p.Avaliacoes).ToListAsync();
         if (produtos.Count == 0)
         {
             return Results.Ok(new Response<List<Produto>>
@@ -725,7 +725,7 @@ app.MapGet("/produtos/loja/{idLoja}", async ([FromServices] AppDbContext context
 {
     try
     {
-        var produtos = await context.Produtos.Where(p => p.LojaId == idLoja).Include(p => p.Segmento).Include(p => p.Loja).ToListAsync();
+        var produtos = await context.Produtos.Where(p => p.LojaId == idLoja).Include(p => p.Segmento).Include(p => p.Avaliacoes).ToListAsync();
         if (produtos.Count == 0)
         {
             return Results.Ok(new Response<List<Produto>>
@@ -755,7 +755,7 @@ app.MapGet("/produtos/segmento/{idSegmento}", async ([FromServices] AppDbContext
 {
     try
     {
-        var produtos = await context.Produtos.Where(p => p.SegmentoId == idSegmento).Include(p => p.Segmento).Include(p => p.Loja).ToListAsync();
+        var produtos = await context.Produtos.Where(p => p.SegmentoId == idSegmento).Include(p => p.Segmento).Include(p => p.Avaliacoes).ToListAsync();
         if (produtos.Count == 0)
         {
             return Results.Ok(new Response<List<Produto>>
@@ -785,7 +785,7 @@ app.MapGet("/produto/{id}", async ([FromServices] AppDbContext context, [FromRou
 {
     try
     {
-        var produto = await context.Produtos.Include(p => p.Segmento).Include(p => p.Loja).FirstOrDefaultAsync(p => p.Id == id);
+        var produto = await context.Produtos.Include(p => p.Segmento).Include(p => p.Avaliacoes).FirstOrDefaultAsync(p => p.Id == id);
         if (produto == null)
         {
             return Results.NotFound(
@@ -821,23 +821,23 @@ app.MapGet("/produto/{id}", async ([FromServices] AppDbContext context, [FromRou
 });
 app.MapGet("/produtos/categoria/{idCategoria}", async ([FromServices] AppDbContext context, [FromRoute] int idCategoria) =>
 {
-     try
+    try
     {
         var categoria = await context.Categorias.FirstOrDefaultAsync(c => c.Id == idCategoria);
         if (categoria == null)
         {
-             return Results.BadRequest(
-                new Response<List<Produto>>
-                {
-                    Mensagem = "Categoria não encontrada para o id: " + idCategoria,
-                    Sucesso = false
-                }
-                );
+            return Results.BadRequest(
+               new Response<List<Produto>>
+               {
+                   Mensagem = "Categoria não encontrada para o id: " + idCategoria,
+                   Sucesso = false
+               }
+               );
         }
 
-        var produtos = await context.Produtos.Include(p => p.Segmento).Where(p => p.Segmento!.CategoriaId == idCategoria).ToListAsync();
+        var produtos = await context.Produtos.Include(p => p.Avaliacoes).Where(p => p.Segmento!.CategoriaId == idCategoria).ToListAsync();
 
-         if (produtos.Count == 0)
+        if (produtos.Count == 0)
         {
             return Results.Ok(new Response<List<Produto>>
             {
@@ -845,7 +845,7 @@ app.MapGet("/produtos/categoria/{idCategoria}", async ([FromServices] AppDbConte
                 Sucesso = true
             });
         }
-        
+
         return Results.Ok(
             new Response<List<Produto>>
             {
@@ -867,24 +867,22 @@ app.MapGet("/produtos/categoria/{idCategoria}", async ([FromServices] AppDbConte
         );
     }
 });
-
-app.MapGet("/produtos/filtrar", async ([FromServices] AppDbContext context, [FromQuery]int? idCategoria, [FromQuery]int? idLoja, [FromQuery]int? idSegmento, [FromQuery] string? nomeProduto) =>
+app.MapGet("/produtos/filtrar", async ([FromServices] AppDbContext context, [FromQuery] int? idCategoria, [FromQuery] int? idLoja, [FromQuery] int? idSegmento, [FromQuery] string? nomeProduto) =>
 {
-     try
+    try
     {
-
-        
         var produtos = await context.Produtos
         .Include(p => p.Avaliacoes)
-        .Where(p => 
+        .Where(p =>
             (idCategoria == null || p.Segmento!.CategoriaId == idCategoria) &&
             (idSegmento == null || p.SegmentoId == idSegmento) &&
             (idLoja == null || p.LojaId == idLoja) &&
-            (nomeProduto == null || p.Nome.Contains(nomeProduto))
+            (nomeProduto == null || p.Nome.ToUpper().Contains(nomeProduto.ToUpper()))
         )
+        .OrderBy(p => p.Avaliacoes.Average(a => a.Nota))
         .ToListAsync();
 
-         if (produtos.Count == 0)
+        if (produtos.Count == 0)
         {
             return Results.Ok(new Response<List<Produto>>
             {
@@ -892,7 +890,7 @@ app.MapGet("/produtos/filtrar", async ([FromServices] AppDbContext context, [Fro
                 Sucesso = true
             });
         }
-        
+
         return Results.Ok(
             new Response<List<Produto>>
             {

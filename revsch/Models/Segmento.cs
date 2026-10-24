@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 public class Segmento
 {
     public int Id { get; set; }
@@ -6,6 +8,7 @@ public class Segmento
     public int CategoriaId { get; set; }
     public Categoria? Categoria { get; set; }
 
+    [JsonIgnore]
     public ICollection<Produto> Produtos { get; set; } = new List<Produto>();
     
 }

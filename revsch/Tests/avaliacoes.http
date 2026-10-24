@@ -12,10 +12,10 @@ POST http://localhost:5191/avaliacao
 Content-Type: application/json
 
 {
-    "nomeUsuario": "Pedro",
-    "nota": 5,
+    "nomeUsuario": "João",
+    "nota": 2,
     "urlImagem": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9J9MkM-ystI6-lF5iPUIvC-rUMB5Dmt9mHQXeR2keAA&s=10",
-    "comentario": "Celular conforme o esperado",
+    "comentario": "Muito lento",
     "produtoId": 1
 }
 
@@ -27,7 +27,7 @@ Content-Type: application/json
     "nomeUsuario": "Pedro",
     "nota": 4,
     "urlImagem": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9J9MkM-ystI6-lF5iPUIvC-rUMB5Dmt9mHQXeR2keAA&s=10",
-    "comentario": "Produto bom, com pequenos detalhes a melhorar.",
+    "comentario": "Celular conforme o esperado, com algumas irregularidades",
     "produtoId": 1
 }
 

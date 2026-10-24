@@ -8,7 +8,10 @@ GET http://localhost:5191/produtos/loja/5
 GET http://localhost:5191/produtos/segmento/1
 
 ### Requisição listar produtos por categoria
-GET http://localhost:5191/produtos/categoria/{1}
+GET http://localhost:5191/produtos/categoria/2
+
+### Requisição listar produtos por categoria
+GET http://localhost:5191/produtos/filtrar?idCategoria=2&idSegmento=2&nomeProduto=boreal
 
 ### Requisição buscar produto
 GET http://localhost:5191/produto/1
@@ -18,9 +21,9 @@ POST http://localhost:5191/produto
 Content-Type: application/json
 
 {
-    "nome": "Smartphone de demonstração",
-    "urlProduto": "https://www.kabum.com.br/produto/smartphone",
-    "lojaId": 1,
+    "nome": "Iphone",
+    "urlProduto": "https://www.kabum.com.br/produto/Iphone",
+    "lojaId": 2,
     "segmentoId": 1
 }
 
@@ -29,8 +32,8 @@ PUT http://localhost:5191/produto/1
 Content-Type: application/json
 
 {
-    "nome": "Smartphone atualizado",
-    "urlProduto": "https://www.kabum.com.br/produto/smartphone-atualizado",
+    "nome": "Iphone 16",
+    "urlProduto": "https://www.kabum.com.br/produto/Iphone16",
     "lojaId": 1,
     "segmentoId": 1
 }
