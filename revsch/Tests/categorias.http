@@ -1,0 +1,24 @@
+### Requisição listagem categorias
+GET http://localhost:5191/categorias
+
+### Requisição buscar categoria
+GET http://localhost:5191/categoria/1
+
+### Requisição criar categoria
+POST http://localhost:5191/categoria
+Content-Type: application/json
+
+{
+    "nome": "Eletrônicos"
+}
+
+### Requisição editar categoria
+PUT http://localhost:5191/categoria/1
+Content-Type: application/json
+
+{
+    "nome": "Eletrodomésticos"
+}
+
+### Requisição deletar categoria
+DELETE http://localhost:5191/categoria/1

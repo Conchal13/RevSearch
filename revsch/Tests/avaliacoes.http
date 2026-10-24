@@ -1,0 +1,35 @@
+### Requisição listar avaliações
+GET http://localhost:5191/avaliacoes
+
+### Requisição listar avaliações por produto
+GET http://localhost:5191/avaliacoes/produto/1
+
+### Requisição buscar avaliação
+GET http://localhost:5191/avaliacao/1
+
+### Requisição criar avaliação
+POST http://localhost:5191/avaliacao
+Content-Type: application/json
+
+{
+    "nomeUsuario": "Pedro",
+    "nota": 5,
+    "urlImagem": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9J9MkM-ystI6-lF5iPUIvC-rUMB5Dmt9mHQXeR2keAA&s=10",
+    "comentario": "Celular conforme o esperado",
+    "produtoId": 1
+}
+
+### Requisição editar avaliação
+PUT http://localhost:5191/avaliacao/1
+Content-Type: application/json
+
+{
+    "nomeUsuario": "Pedro",
+    "nota": 4,
+    "urlImagem": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9J9MkM-ystI6-lF5iPUIvC-rUMB5Dmt9mHQXeR2keAA&s=10",
+    "comentario": "Produto bom, com pequenos detalhes a melhorar.",
+    "produtoId": 1
+}
+
+### Requisição deletar avaliação
+DELETE http://localhost:5191/avaliacao/1
