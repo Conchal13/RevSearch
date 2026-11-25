@@ -7,7 +7,18 @@ builder.Services.AddDbContext<AppDbContext>();
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "CorsConfig",
+        policy =>
+        {
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        });
+});
+
 var app = builder.Build();
+
+app.UseCors("CorsConfig");
 
 app.MapGet("/", () => "Bem vindo ao RevSch API!");
 
